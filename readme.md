@@ -96,6 +96,18 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
 ```
 
+Trace span info provided by ```FastAPIInstrumentor``` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on
+
+![Span Information](./images/span-info.png)
+
+Log format with trace id and span id, which override by ```LoggingInstrumentor```
+
+```txt
+%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s
+```
+
+![Log With Trace ID And Span ID](./images/log-format.png)
+
 #### Metrics
 
 Utilize [Prometheus Python Client](https://github.com/prometheus/client_python) generate OpenTelemetry format metric with [exemplars](https://github.com/prometheus/client_python#exemplars) and expose on ```/metrics``` for Prometheus.
@@ -135,6 +147,10 @@ from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST, genera
 def metrics(request: Request) -> Response:
     return Response(generate_latest(REGISTRY), headers={"Content-Type": CONTENT_TYPE_LATEST})
 ```
+
+Metrics with exemplars
+
+![Metrics With Exemplars](./images/metrics-with-exemplars.png)
 
 ### Prometheus - Metrics
 
