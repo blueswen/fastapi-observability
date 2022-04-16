@@ -32,25 +32,31 @@ Telemetry FastAPI application with three pillars of observability on [Grafana](h
 
 4. Check predefined dashboard ```FastAPI Observability``` on Grafana [http://localhost:3000/](http://localhost:3000/)
 
-   dashboard screenshot
+   Dashboard screenshot:
 
    ![FastAPI Monitoring Dashboard](./images/dashboard.png)
+
+   Dashboard is also available on [Grafana Dashboards](https://grafana.com/grafana/dashboards/16110).
 
 ## Explore with Grafana
 
 ### Metrics to Traces
 
-```txt
-histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket{app_name="app-a", path!="/metrics"}[1m])) by(path, le))
-```
+Get Trace ID from exemplar in metrics, then query in Tempo.
+
+Query: ```histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket{app_name="app-a", path!="/metrics"}[1m])) by(path, le))```
 
 ![Metrics to Traces](./images/metrics-to-traces.png)
 
 ### Traces to Logs
 
+Get Trace ID and tags (here is ```compose.service```) defined in Tempo data source from span, then query with Loki.
+
 ![Traces to Logs](./images/traces-to-logs.png)
 
 ### Logs to Traces
+
+Get Trace ID pared from log (regex defined in Loki data source), then query in Tempo.
 
 ![Logs to Traces](./images/logs-to-traces.png)
 
@@ -58,7 +64,7 @@ histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket{app_nam
 
 ### FastAPI Application
 
-For more complex scenario, we use three FastAPI applications with same code in this demo.
+For more complex scenario, we use three FastAPI applications with same code in this demo. There is a cross service action in ```/chain``` endpoint, which provides a good example for how to use OpenTelemetry SDK and how Grafna presents trace information.
 
 #### Traces and Logs
 
@@ -294,7 +300,7 @@ editable: true
 
 ### Grafana
 
-1. Add prometheus to data source with config file ```etc/grafana/datasource.yml```.
+1. Add prometheus, tempo and loki to data source with config file ```etc/grafana/datasource.yml```.
 2. Load predefined dashboard with ```etc/dashboards.yaml``` and ```etc/dashboards/fastapi-observability.json```.
 
 ```yaml
