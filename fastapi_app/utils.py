@@ -52,9 +52,8 @@ REQUESTS_IN_PROGRESS = Gauge(
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app: ASGIApp, filter_unhandled_paths: bool = False, app_name: str = "fastapi-app") -> None:
+    def __init__(self, app: ASGIApp, app_name: str = "fastapi-app") -> None:
         super().__init__(app)
-        self.filter_unhandled_paths = filter_unhandled_paths
         self.app_name = app_name
         INFO.labels(app_name=self.app_name).inc()
 
@@ -62,7 +61,7 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         method = request.method
         path, is_handled_path = self.get_path(request)
 
-        if self._is_path_filtered(is_handled_path):
+        if not is_handled_path:
             return await call_next(request)
 
         REQUESTS_IN_PROGRESS.labels(
@@ -103,9 +102,6 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
                 return route.path, True
 
         return request.url.path, False
-
-    def _is_path_filtered(self, is_handled_path: bool) -> bool:
-        return self.filter_unhandled_paths and not is_handled_path
 
 
 def metrics(request: Request) -> Response:

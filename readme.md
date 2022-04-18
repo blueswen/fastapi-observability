@@ -339,3 +339,4 @@ grafana:
 6. [Don’t Repeat Yourself with Anchors, Aliases and Extensions in Docker Compose Files](https://medium.com/@kinghuang/docker-compose-anchors-aliases-extensions-a1e4105d70bd)
 7. [How can I escape a $ dollar sign in a docker compose file?](https://stackoverflow.com/a/40621373)
 8. [Tempo Trace to logs tags discussion](https://community.grafana.com/t/need-to-customize-tempo-option-for-trace-logs-with-loki/59612)
+9. [Starlette Prometheus](https://github.com/perdy/starlette-prometheus)

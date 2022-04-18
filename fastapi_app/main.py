@@ -23,7 +23,7 @@ TARGET_TWO_HOST = os.environ.get("TARGET_TWO_HOST", "app-c")
 app = FastAPI()
 
 # Setting metrics middleware
-app.add_middleware(PrometheusMiddleware, app_name=APP_NAME, filter_unhandled_paths=True)
+app.add_middleware(PrometheusMiddleware, app_name=APP_NAME)
 app.add_route("/metrics", metrics)
 
 # Setting OpenTelemetry exporter
