@@ -40,6 +40,10 @@ Telemetry FastAPI application with three pillars of observability on [Grafana](h
 
 ## Explore with Grafana
 
+![Observability Correlations](./images/observability-correlations.jpeg)
+
+Image Source: [Grafana](https://grafana.com/blog/2021/03/31/intro-to-exemplars-which-enable-grafana-tempos-distributed-tracing-at-massive-scale/)
+
 ### Metrics to Traces
 
 Get Trace ID from exemplar in metrics, then query in Tempo.
@@ -68,7 +72,7 @@ For more complex scenario, we use three FastAPI applications with same code in t
 
 #### Traces and Logs
 
-Utilize [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo.
+Utilize [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child span when visualized in Tempo when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interactions ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)).
 
 Utilize [OpenTelemetry Logging Instrumentation](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html) override logger format which with trace id and span id.
 
@@ -96,7 +100,7 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
 ```
 
-Trace span info provided by ```FastAPIInstrumentor``` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on
+Trace span info provided by ```FastAPIInstrumentor``` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on.
 
 ![Span Information](./images/span-info.png)
 
