@@ -68,7 +68,7 @@ Get Trace ID pared from log (regex defined in Loki data source), then query in T
 
 ### FastAPI Application
 
-For more complex scenario, we use three FastAPI applications with same code in this demo. There is a cross service action in ```/chain``` endpoint, which provides a good example for how to use OpenTelemetry SDK and how Grafna presents trace information.
+For more complex scenario, we use three FastAPI applications with same code in this demo. There is a cross service action in ```/chain``` endpoint, which provides a good example for how to use OpenTelemetry SDK and how Grafana presents trace information.
 
 #### Traces and Logs
 
