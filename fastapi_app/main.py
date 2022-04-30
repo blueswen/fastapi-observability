@@ -91,7 +91,7 @@ async def random_sleep(response: Response):
 async def chain(response: Response):
 
     headers = {}
-    inject(headers) # inject trace info to header
+    inject(headers)  # inject trace info to header
     logging.critical(headers)
 
     async with httpx.AsyncClient() as client:

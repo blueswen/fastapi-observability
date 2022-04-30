@@ -72,7 +72,7 @@ For more complex scenario, we use three FastAPI applications with same code in t
 
 #### Traces and Logs
 
-Utilize [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child span when visualized in Tempo when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interactions ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)).
+Utilize [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child spans when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interaction ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)).
 
 Utilize [OpenTelemetry Logging Instrumentation](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html) override logger format which with trace id and span id.
 
@@ -111,6 +111,31 @@ Log format with trace id and span id, which override by ```LoggingInstrumentor``
 ```
 
 ![Log With Trace ID And Span ID](./images/log-format.png)
+
+#### Span Inject
+
+If we want other services ues the same Trace ID, we have to use ```inject``` function to add current span information to header. Because OpenTelemetry FastAPI instrumentation only takes care the asgi app's request and response, it does not affect any other modules or actions like send http request to other server or function calls.
+
+```py
+# fastapi_app/main.py
+
+from opentelemetry.propagate import inject
+
+@app.get("/chain")
+async def chain(response: Response):
+
+    headers = {}
+    inject(headers)  # inject trace info to header
+
+    async with httpx.AsyncClient() as client:
+        await client.get(f"http://localhost:8000/", headers=headers,)
+    async with httpx.AsyncClient() as client:
+        await client.get(f"http://{TARGET_ONE_HOST}:8000/io_task", headers=headers,)
+    async with httpx.AsyncClient() as client:
+        await client.get(f"http://{TARGET_TWO_HOST}:8000/cpu_task", headers=headers,)
+
+    return {"path": "/chain"}
+```
 
 #### Metrics
 
