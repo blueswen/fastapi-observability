@@ -8,6 +8,28 @@ Telemetry FastAPI application with three pillars of observability on [Grafana](h
 
 ![Telemetry Architecture](./images/telemetry-arch.png)
 
+## Table of contents
+  - [Quick Start](#quick-start)
+  - [Explore with Grafana](#explore-with-grafana)
+    - [Metrics to Traces](#metrics-to-traces)
+    - [Traces to Logs](#traces-to-logs)
+    - [Logs to Traces](#logs-to-traces)
+  - [Detail](#detail)
+    - [FastAPI Application](#fastapi-application)
+      - [Traces and Logs](#traces-and-logs)
+      - [Span Inject](#span-inject)
+      - [Metrics](#metrics)
+    - [Prometheus - Metrics](#prometheus---metrics)
+      - [Prometheus Config](#prometheus-config)
+      - [Grafana Data Source](#grafana-data-source)
+    - [Tempo - Traces](#tempo---traces)
+      - [Grafana Data Source](#grafana-data-source-1)
+    - [Loki - Logs](#loki---logs)
+      - [Loki Docker Driver](#loki-docker-driver)
+      - [Grafana Data Source](#grafana-data-source-2)
+    - [Grafana](#grafana)
+  - [Reference](#reference)
+
 ## Quick Start
 
 1. Install [Loki Docker Driver](https://grafana.com/docs/loki/latest/clients/docker-driver/)
@@ -39,6 +61,8 @@ Telemetry FastAPI application with three pillars of observability on [Grafana](h
    Dashboard is also available on [Grafana Dashboards](https://grafana.com/grafana/dashboards/16110).
 
 ## Explore with Grafana
+
+Grafana provides a great solution, which could observe specific action in service between traces, metrics and logs through trace ID and exemplar.
 
 ![Observability Correlations](./images/observability-correlations.jpeg)
 
@@ -72,9 +96,9 @@ For more complex scenario, we use three FastAPI applications with same code in t
 
 #### Traces and Logs
 
-Utilize [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child spans when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interaction ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)). If you want to get rid of the internal spans, there is a [workaround](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1116225314) in the same issue #831 through using a new OpenTelemetry middleware with two overridden method about span processing.
+We use [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child spans when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interaction ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)). If you want to get rid of the internal spans, there is a [workaround](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1116225314) in the same issue #831 through using a new OpenTelemetry middleware with two overridden method about span processing.
 
-Utilize [OpenTelemetry Logging Instrumentation](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html) override logger format which with trace id and span id.
+We use [OpenTelemetry Logging Instrumentation](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html) to override logger format with another format with trace id and span id.
 
 ```py
 # fastapi_app/utils.py
@@ -100,7 +124,7 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
 ```
 
-Trace span info provided by ```FastAPIInstrumentor``` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on.
+The following image shows the span info sended to Tempo and queried on Grafana. Trace span info provided by ```FastAPIInstrumentor``` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on.
 
 ![Span Information](./images/span-info.png)
 
@@ -109,6 +133,8 @@ Log format with trace id and span id, which override by ```LoggingInstrumentor``
 ```txt
 %(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s
 ```
+
+The following image is what the logs look like.
 
 ![Log With Trace ID And Span ID](./images/log-format.png)
 
@@ -139,9 +165,9 @@ async def chain(response: Response):
 
 #### Metrics
 
-Utilize [Prometheus Python Client](https://github.com/prometheus/client_python) generate OpenTelemetry format metric with [exemplars](https://github.com/prometheus/client_python#exemplars) and expose on ```/metrics``` for Prometheus.
+Use [Prometheus Python Client](https://github.com/prometheus/client_python) to generate OpenTelemetry format metric with [exemplars](https://github.com/prometheus/client_python#exemplars) and expose on ```/metrics``` for Prometheus.
 
-In order to add exemplars to metrics, we retrieve trace id from current span for exemplar, and add trace id dict to Histogram or Counter metrics.
+In order to add exemplar to metrics, we retrieve trace id from current span for exemplar, and add trace id dict to Histogram or Counter metrics.
 
 ```py
 # fastapi_app/utils.py
@@ -165,7 +191,7 @@ REQUESTS_PROCESSING_TIME.labels(method=method, path=path, app_name=self.app_name
 )
 ```
 
-Because exemplars is a new datatype proposed by [OpenMetrics](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#exemplars), ```/metrics``` have to use ```CONTENT_TYPE_LATEST``` and ```generate_latest``` from ```prometheus_client.openmetrics.exposition``` instead of ```prometheus_client```. Otherwise use wrong generate_latest the exemplars dict behind Counter and Histogram will never showup, and use wrong CONTENT_TYPE_LATEST will cause Prometheus scrape failed.
+Because exemplars is a new datatype proposed in [OpenMetrics](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#exemplars), ```/metrics``` have to use ```CONTENT_TYPE_LATEST``` and ```generate_latest``` from ```prometheus_client.openmetrics.exposition``` module instead of ```prometheus_client``` module. Otherwise using wrong generate_latest the exemplars dict behind Counter and Histogram will never showup, and using wrong CONTENT_TYPE_LATEST will cause Prometheus scrape failed.
 
 ```py
 # fastapi_app/utils.py
@@ -285,8 +311,8 @@ Collects logs with Loki Docker Driver from all services.
 
 #### Loki Docker Driver
 
-1. Using [YAML anchor and alias](https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/) feature to setting logging options for each services.
-2. Setting [Loki Docker Driver options](https://grafana.com/docs/loki/latest/clients/docker-driver/configuration/)
+1. Use [YAML anchor and alias](https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/) feature to setting logging options for each services.
+2. Set [Loki Docker Driver options](https://grafana.com/docs/loki/latest/clients/docker-driver/configuration/)
    1. loki-url: loki service endpoint
    2. loki-pipeline-stages: processes multiline log from FastAPI application with multiline and regex stages ([reference](https://grafana.com/docs/loki/latest/clients/promtail/stages/multiline/))
 
