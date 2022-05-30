@@ -140,7 +140,7 @@ The following image is what the logs look like.
 
 #### Span Inject
 
-If we want other services ues the same Trace ID, we have to use ```inject``` function to add current span information to header. Because OpenTelemetry FastAPI instrumentation only takes care the asgi app's request and response, it does not affect any other modules or actions like send http request to other server or function calls.
+If you want other services use the same Trace ID, you have to use ```inject``` function to add current span information to header. Because OpenTelemetry FastAPI instrumentation only takes care the asgi app's request and response, it does not affect any other modules or actions like send http request to other server or function calls.
 
 ```py
 # fastapi_app/main.py
