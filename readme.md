@@ -1,12 +1,12 @@
 # FastAPI with Observability
 
-Telemetry FastAPI application with three pillars of observability on [Grafana](https://github.com/grafana/grafana):
+Observe FastAPI application with three pillars of observability on [Grafana](https://github.com/grafana/grafana):
 
 1. Traces with [Tempo](https://github.com/grafana/tempo) and [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python)
 2. Metrics with [Prometheus](https://prometheus.io/) and [Prometheus Python Client](https://github.com/prometheus/client_python)
 3. Logs with [Loki](https://github.com/grafana/loki)
 
-![Telemetry Architecture](./images/telemetry-arch.png)
+![Observability Architecture](./images/observability-arch.png)
 
 ## Table of contents
   - [Quick Start](#quick-start)
