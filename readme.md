@@ -1,6 +1,6 @@
 # FastAPI with Observability
 
-Observe FastAPI application with three pillars of observability on [Grafana](https://github.com/grafana/grafana):
+Observe the FastAPI application with three pillars of observability on [Grafana](https://github.com/grafana/grafana):
 
 1. Traces with [Tempo](https://github.com/grafana/tempo) and [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python)
 2. Metrics with [Prometheus](https://prometheus.io/) and [Prometheus Python Client](https://github.com/prometheus/client_python)
@@ -38,31 +38,31 @@ Observe FastAPI application with three pillars of observability on [Grafana](htt
    docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
    ```
 
-2. Build application image and start all service with docker-compose
+2. Build application image and start all services with docker-compose
 
    ```bash
    docker-compose build
    docker-compose up -d
    ```
 
-3. Send requests with [siege](https://linux.die.net/man/1/siege) to FastAPI app
+3. Send requests with [siege](https://linux.die.net/man/1/siege) to the FastAPI app
 
    ```bash
    bash request-script.sh
    bash trace.sh
    ```
 
-4. Check predefined dashboard ```FastAPI Observability``` on Grafana [http://localhost:3000/](http://localhost:3000/)
+4. Check predefined dashboard `FastAPI Observability` on Grafana [http://localhost:3000/](http://localhost:3000/)
 
    Dashboard screenshot:
 
    ![FastAPI Monitoring Dashboard](./images/dashboard.png)
 
-   Dashboard is also available on [Grafana Dashboards](https://grafana.com/grafana/dashboards/16110).
+   The dashboard is also available on [Grafana Dashboards](https://grafana.com/grafana/dashboards/16110).
 
 ## Explore with Grafana
 
-Grafana provides a great solution, which could observe specific action in service between traces, metrics and logs through trace ID and exemplar.
+Grafana provides a great solution, which could observe specific actions in service between traces, metrics, and logs through trace ID and exemplar.
 
 ![Observability Correlations](./images/observability-correlations.jpeg)
 
@@ -70,15 +70,15 @@ Image Source: [Grafana](https://grafana.com/blog/2021/03/31/intro-to-exemplars-w
 
 ### Metrics to Traces
 
-Get Trace ID from exemplar in metrics, then query in Tempo.
+Get Trace ID from an exemplar in metrics, then query in Tempo.
 
-Query: ```histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket{app_name="app-a", path!="/metrics"}[1m])) by(path, le))```
+Query: `histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket{app_name="app-a", path!="/metrics"}[1m])) by(path, le))`
 
 ![Metrics to Traces](./images/metrics-to-traces.png)
 
 ### Traces to Logs
 
-Get Trace ID and tags (here is ```compose.service```) defined in Tempo data source from span, then query with Loki.
+Get Trace ID and tags (here is `compose.service`) defined in Tempo data source from span, then query with Loki.
 
 ![Traces to Logs](./images/traces-to-logs.png)
 
@@ -92,13 +92,13 @@ Get Trace ID pared from log (regex defined in Loki data source), then query in T
 
 ### FastAPI Application
 
-For more complex scenario, we use three FastAPI applications with same code in this demo. There is a cross service action in ```/chain``` endpoint, which provides a good example for how to use OpenTelemetry SDK and how Grafana presents trace information.
+For a more complex scenario, we use three FastAPI applications with the same code in this demo. There is a cross-service action in `/chain` endpoint, which provides a good example of how to use OpenTelemetry SDK and how Grafana presents trace information.
 
 #### Traces and Logs
 
-We use [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child spans when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interaction ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)). If you want to get rid of the internal spans, there is a [workaround](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1116225314) in the same issue #831 through using a new OpenTelemetry middleware with two overridden method about span processing.
+We use [OpenTelemetry Python SDK](https://github.com/open-telemetry/opentelemetry-python) to send trace info with gRCP to Tempo. Each request span contains other child spans when using OpenTelemetry instrumentation. The reason is that instrumentation will catch each internal asgi interaction ([opentelemetry-python-contrib issue #831](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1005163018)). If you want to get rid of the internal spans, there is a [workaround](https://github.com/open-telemetry/opentelemetry-python-contrib/issues/831#issuecomment-1116225314) in the same issue #831 by using a new OpenTelemetry middleware with two overridden methods for span processing.
 
-We use [OpenTelemetry Logging Instrumentation](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html) to override logger format with another format with trace id and span id.
+We use [OpenTelemetry Logging Instrumentation](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html) to override the logger format with another format with trace id and span id.
 
 ```py
 # fastapi_app/utils.py
@@ -124,11 +124,11 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
 ```
 
-The following image shows the span info sended to Tempo and queried on Grafana. Trace span info provided by ```FastAPIInstrumentor``` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on.
+The following image shows the span info sent to Tempo and queried on Grafana. Trace span info provided by `FastAPIInstrumentor` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on.
 
 ![Span Information](./images/span-info.png)
 
-Log format with trace id and span id, which override by ```LoggingInstrumentor```
+Log format with trace id and span id, which override by `LoggingInstrumentor`
 
 ```txt
 %(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s
@@ -140,7 +140,7 @@ The following image is what the logs look like.
 
 #### Span Inject
 
-If you want other services use the same Trace ID, you have to use ```inject``` function to add current span information to header. Because OpenTelemetry FastAPI instrumentation only takes care the asgi app's request and response, it does not affect any other modules or actions like send http request to other server or function calls.
+If you want other services to use the same Trace ID, you have to use `inject` function to add current span information to the header. Because OpenTelemetry FastAPI instrumentation only takes care of the asgi app's request and response, it does not affect any other modules or actions like sending HTTP requests to other servers or function calls.
 
 ```py
 # fastapi_app/main.py
@@ -165,9 +165,9 @@ async def chain(response: Response):
 
 #### Metrics
 
-Use [Prometheus Python Client](https://github.com/prometheus/client_python) to generate OpenTelemetry format metric with [exemplars](https://github.com/prometheus/client_python#exemplars) and expose on ```/metrics``` for Prometheus.
+Use [Prometheus Python Client](https://github.com/prometheus/client_python) to generate OpenTelemetry format metric with [exemplars](https://github.com/prometheus/client_python#exemplars) and expose on `/metrics` for Prometheus.
 
-In order to add exemplar to metrics, we retrieve trace id from current span for exemplar, and add trace id dict to Histogram or Counter metrics.
+In order to add an exemplar to metrics, we retrieve the trace id from the current span for the exemplar and add the trace id dict to the Histogram or Counter metrics.
 
 ```py
 # fastapi_app/utils.py
@@ -191,7 +191,7 @@ REQUESTS_PROCESSING_TIME.labels(method=method, path=path, app_name=self.app_name
 )
 ```
 
-Because exemplars is a new datatype proposed in [OpenMetrics](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#exemplars), ```/metrics``` have to use ```CONTENT_TYPE_LATEST``` and ```generate_latest``` from ```prometheus_client.openmetrics.exposition``` module instead of ```prometheus_client``` module. Otherwise using wrong generate_latest the exemplars dict behind Counter and Histogram will never showup, and using wrong CONTENT_TYPE_LATEST will cause Prometheus scrape failed.
+Because exemplars is a new datatype proposed in [OpenMetrics](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#exemplars), `/metrics` have to use `CONTENT_TYPE_LATEST` and `generate_latest` from `prometheus_client.openmetrics.exposition` module instead of `prometheus_client` module. Otherwise using the wrong generate_latest the exemplars dict behind Counter and Histogram will never show up, and using the wrong CONTENT_TYPE_LATEST will cause Prometheus scraping to fail.
 
 ```py
 # fastapi_app/utils.py
@@ -213,7 +213,7 @@ Collects metrics from applications.
 
 #### Prometheus Config
 
-Define all FastAPI applications metrics scrape jobs in ```etc/prometheus/prometheus.yml```
+Define all FastAPI applications metrics scrape jobs in `etc/prometheus/prometheus.yml`.
 
 ```yaml
 ...
@@ -234,7 +234,7 @@ scrape_configs:
 
 #### Grafana Data Source
 
-Add a Exemplars which use value of ```TraceID``` label to create a Tempo link.
+Add an Exemplars which uses the value of `TraceID` label to create a Tempo link.
 
 Grafana data source setting example:
 
@@ -271,8 +271,8 @@ Receives spans from applications.
 [Trace to logs](https://grafana.com/docs/grafana/latest/datasources/tempo/#trace-to-logs) setting:
 
 1. Data source: target log source
-2. Tags: key of tags or process level attributes from trace, which will be log query criterial if key exists in trace
-3. Map tag names: Convert exists key of tags or process level attributes from trace to another key, then used as log query criterial. Use this feature when the values of trace tag and log label are identical but keys are different.
+2. Tags: key of tags or process level attributes from the trace, which will be log query criteria if the key exists in the trace
+3. Map tag names: Convert existing key of tags or process level attributes from trace to another key, then used as log query criteria. Use this feature when the values of the trace tag and log label are identical but the keys are different.
 
 Grafana data source setting example:
 
@@ -311,7 +311,7 @@ Collects logs with Loki Docker Driver from all services.
 
 #### Loki Docker Driver
 
-1. Use [YAML anchor and alias](https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/) feature to setting logging options for each services.
+1. Use [YAML anchor and alias](https://support.atlassian.com/bitbucket-cloud/docs/yaml-anchors/) feature to set logging options for each service.
 2. Set [Loki Docker Driver options](https://grafana.com/docs/loki/latest/clients/docker-driver/configuration/)
    1. loki-url: loki service endpoint
    2. loki-pipeline-stages: processes multiline log from FastAPI application with multiline and regex stages ([reference](https://grafana.com/docs/loki/latest/clients/promtail/stages/multiline/))
@@ -339,7 +339,7 @@ services:
 
 #### Grafana Data Source
 
-Add a TraceID derived field to extract trace id and create a Tempo link from trace id.
+Add a TraceID derived field to extract the trace id and create a Tempo link from the trace id.
 
 Grafana data source setting example:
 
@@ -371,8 +371,8 @@ editable: true
 
 ### Grafana
 
-1. Add prometheus, tempo and loki to data source with config file ```etc/grafana/datasource.yml```.
-2. Load predefined dashboard with ```etc/dashboards.yaml``` and ```etc/dashboards/fastapi-observability.json```.
+1. Add Prometheus, Tempo, and Loki to the data source with config file `etc/grafana/datasource.yml`.
+2. Load predefined dashboard with `etc/dashboards.yaml` and `etc/dashboards/fastapi-observability.json`.
 
 ```yaml
 # grafana in docker-compose.yaml
