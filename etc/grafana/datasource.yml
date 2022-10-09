@@ -44,6 +44,10 @@ datasources:
     jsonData:
       nodeGraph:
         enabled: true
+      search:
+        hide: true
+      lokiSearch:
+        datasourceUid: loki
       tracesToLogs:
         datasourceUid: loki
         filterBySpanID: false
