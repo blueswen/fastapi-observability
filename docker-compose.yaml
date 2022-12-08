@@ -63,7 +63,7 @@ services:
 
   tempo:
     image: grafana/tempo:1.5.0
-    command: [ "--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false" ]
+    command: [ "--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false", "--search.enabled=true" ]
     ports:
       - "14250:14250"
     depends_on:

@@ -45,7 +45,7 @@ datasources:
       nodeGraph:
         enabled: true
       search:
-        hide: true
+        hide: false
       lokiSearch:
         datasourceUid: loki
       tracesToLogs:
