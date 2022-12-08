@@ -9,6 +9,8 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
 ![Observability Architecture](./images/observability-arch.png)
 
 ## Table of contents
+- [FastAPI with Observability](#fastapi-with-observability)
+  - [Table of contents](#table-of-contents)
   - [Quick Start](#quick-start)
   - [Explore with Grafana](#explore-with-grafana)
     - [Metrics to Traces](#metrics-to-traces)
@@ -45,7 +47,7 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
    docker-compose up -d
    ```
 
-3. Send requests with [siege](https://linux.die.net/man/1/siege) to the FastAPI app
+3. Send requests with [siege](https://linux.die.net/man/1/siege) and curl to the FastAPI app
 
    ```bash
    bash request-script.sh
@@ -84,7 +86,7 @@ Get Trace ID and tags (here is `compose.service`) defined in Tempo data source f
 
 ### Logs to Traces
 
-Get Trace ID pared from log (regex defined in Loki data source), then query in Tempo.
+Get Trace ID from log (regex defined in Loki data source), then query in Tempo.
 
 ![Logs to Traces](./images/logs-to-traces.png)
 
@@ -395,3 +397,4 @@ grafana:
 7. [How can I escape a $ dollar sign in a docker compose file?](https://stackoverflow.com/a/40621373)
 8. [Tempo Trace to logs tags discussion](https://community.grafana.com/t/need-to-customize-tempo-option-for-trace-logs-with-loki/59612)
 9. [Starlette Prometheus](https://github.com/perdy/starlette-prometheus)
+10. [Tempo Example](https://github.com/grafana/tempo/tree/main/example/docker-compose/local)
