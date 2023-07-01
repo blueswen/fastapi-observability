@@ -13,7 +13,7 @@ version: "3.4"
 
 services:
   loki:
-    image: grafana/loki:2.8.0
+    image: grafana/loki:2.8.2
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
@@ -49,7 +49,7 @@ services:
     logging: *default-logging
 
   prometheus:
-    image: prom/prometheus:v2.43.0
+    image: prom/prometheus:v2.45.0
     ports:
       - "9090:9090"
     volumes:
@@ -62,7 +62,7 @@ services:
     logging: *default-logging
 
   tempo:
-    image: grafana/tempo:2.0.1
+    image: grafana/tempo:2.1.1
     command: [ "--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false" ]
     ports:
       - "14250:14250"
@@ -71,7 +71,7 @@ services:
     logging: *default-logging
 
   grafana:
-    image: grafana/grafana:9.4.7
+    image: grafana/grafana:9.4.13
     ports:
       - "3000:3000"
     volumes:
@@ -85,5 +85,4 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
-      GF_FEATURE_TOGGLES_ENABLE: "traceqlEditor"
     logging: *default-logging

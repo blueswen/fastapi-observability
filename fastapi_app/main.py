@@ -2,15 +2,12 @@ import logging
 import os
 import random
 import time
-from email import header
-from functools import partial
 from typing import Optional
 
 import httpx
 import uvicorn
 from fastapi import FastAPI, Response
 from opentelemetry.propagate import inject
-
 from utils import PrometheusMiddleware, metrics, setting_otlp
 
 APP_NAME = os.environ.get("APP_NAME", "app")
