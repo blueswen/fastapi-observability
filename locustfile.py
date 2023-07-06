@@ -1,4 +1,4 @@
-### locust -f locust.py --headless --users 10 --spawn-rate 1 -H http://localhost:8000
+### locust -f locustfile.py --headless --users 10 --spawn-rate 1 -H http://localhost:8000
 
 
 import time
