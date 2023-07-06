@@ -1,4 +1,5 @@
 # FastAPI with Observability
+https://github.com/blueswen/fastapi-observability
 
 Observe the FastAPI application with three pillars of observability on [Grafana](https://github.com/grafana/grafana):
 
