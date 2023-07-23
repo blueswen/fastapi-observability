@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 httpx = "==0.24.1"
-fastapi = "==0.99.0"
+fastapi = "==0.100.0"
 uvicorn = "==0.22.0"
 prometheus-client = "==0.17.0"
 opentelemetry-instrumentation-fastapi = "==0.39b0"
