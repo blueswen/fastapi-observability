@@ -13,7 +13,7 @@ version: "3.4"
 
 services:
   loki:
-    image: grafana/loki:2.8.2
+    image: grafana/loki:2.8.3
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
@@ -71,7 +71,7 @@ services:
     logging: *default-logging
 
   grafana:
-    image: grafana/grafana:9.4.13
+    image: grafana/grafana:10.0.2
     ports:
       - "3000:3000"
     volumes:
@@ -84,5 +84,5 @@ services:
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
-      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      # GF_AUTH_DISABLE_LOGIN_FORM: "true"
     logging: *default-logging
