@@ -1,5 +1,4 @@
 # FastAPI with Observability
-https://github.com/blueswen/fastapi-observability
 
 Observe the FastAPI application with three pillars of observability on [Grafana](https://github.com/grafana/grafana):
 
@@ -7,7 +6,7 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
 2. Metrics with [Prometheus](https://prometheus.io/) and [Prometheus Python Client](https://github.com/prometheus/client_python)
 3. Logs with [Loki](https://github.com/grafana/loki)
 
-![Observability Architecture](./images/observability-arch.png)
+![Observability Architecture](./images/observability-arch.jpg)
 
 ## Table of contents
 - [FastAPI with Observability](#fastapi-with-observability)
@@ -53,6 +52,13 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
    ```bash
    bash request-script.sh
    bash trace.sh
+   ```
+
+   Or you can use [Locust](https://locust.io/) to send requests:
+
+   ```bash
+   # install locust first with `pip install locust` if you don't have it
+   locust -f locustfile.py --headless --users 10 --spawn-rate 1 -H http://localhost:8000
    ```
 
 4. Check predefined dashboard `FastAPI Observability` on Grafana [http://localhost:3000/](http://localhost:3000/)
@@ -131,7 +137,7 @@ The following image shows the span info sent to Tempo and queried on Grafana. Tr
 
 ![Span Information](./images/span-info.png)
 
-Log format with trace id and span id, which override by `LoggingInstrumentor`
+Log format with trace id and span id, which is overridden by `LoggingInstrumentor``
 
 ```txt
 %(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s
@@ -310,7 +316,7 @@ editable: true
 
 ### Loki - Logs
 
-Collects logs with Loki Docker Driver from all services.
+Collect logs with Loki Docker Driver from all services.
 
 #### Loki Docker Driver
 
@@ -380,7 +386,7 @@ editable: true
 ```yaml
 # grafana in docker-compose.yaml
 grafana:
-   image: grafana/grafana:9.3.7
+   image: grafana/grafana:10.0.2
    volumes:
       - ./etc/grafana/:/etc/grafana/provisioning/datasources # data sources
       - ./etc/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting

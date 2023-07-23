@@ -1,7 +1,4 @@
-### locust -f locustfile.py --headless --users 10 --spawn-rate 1 -H http://localhost:8000
-
-
-import time
+# Usage: locust -f locustfile.py --headless --users 10 --spawn-rate 1 -H http://localhost:8000
 from locust import HttpUser, task, between
 
 
@@ -35,15 +32,3 @@ class QuickstartUser(HttpUser):
     @task()
     def random_sleep(self):
         self.client.get("/error_test", name="/error_test") 
-    
-    # @task(3)
-    # def view_items(self):
-    #     for item_id in range(10):
-    #         self.client.get(f"/items/{item_id}", name="/items")
-    #         time.sleep(1)
-
-    # @task(3)
-    # def make_external_api_calls(self):
-    #     for item_id in range(10):
-    #         self.client.get("/external-api", name="/external-api")
-    #         time.sleep(1)
