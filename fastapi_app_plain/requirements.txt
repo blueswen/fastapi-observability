@@ -1,0 +1,8 @@
+httpx==0.24.1
+fastapi==0.103.1
+uvicorn==0.23.2
+prometheus-client==0.17.1
+opentelemetry-distro==0.40b0
+opentelemetry-instrumentation-fastapi==0.40b0
+opentelemetry-instrumentation-logging==0.40b0
+opentelemetry-exporter-otlp==1.19.0
