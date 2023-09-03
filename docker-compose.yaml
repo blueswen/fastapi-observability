@@ -39,13 +39,20 @@ services:
     logging: *default-logging
 
   app-c:
-    build: ./fastapi_app/
+    build: ./fastapi_app_plain/
     ports:
       - "8002:8000"
     depends_on:
       - loki
     environment:
       APP_NAME: "app-c"
+      OTEL_PYTHON_LOG_CORRELATION: "true"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://tempo:4317"
+      OTEL_METRICS_EXPORTER: "none"
+      OTEL_SERVICE_NAME: "app-c"
+      OTEL_RESOURCE_ATTRIBUTES: "compose_service=app-c"
+    command: "opentelemetry-instrument python main.py"
     logging: *default-logging
 
   prometheus:
@@ -71,7 +78,7 @@ services:
     logging: *default-logging
 
   grafana:
-    image: grafana/grafana:10.0.2
+    image: grafana/grafana:10.1.0
     ports:
       - "3000:3000"
     volumes:
@@ -81,8 +88,4 @@ services:
     depends_on:
       - loki
       - prometheus
-    environment:
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
-      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
-      # GF_AUTH_DISABLE_LOGIN_FORM: "true"
     logging: *default-logging
