@@ -21,6 +21,7 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
       - [Traces and Logs](#traces-and-logs)
       - [Span Inject](#span-inject)
       - [Metrics](#metrics)
+      - [Auto Instrumentation](#auto-instrumentation)
     - [Prometheus - Metrics](#prometheus---metrics)
       - [Prometheus Config](#prometheus-config)
       - [Grafana Data Source](#grafana-data-source)
@@ -61,7 +62,13 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
    locust -f locustfile.py --headless --users 10 --spawn-rate 1 -H http://localhost:8000
    ```
 
-4. Check predefined dashboard `FastAPI Observability` on Grafana [http://localhost:3000/](http://localhost:3000/)
+   Or you can send requests with [k6](https://k6.io/):
+
+   ```bash
+   k6 run --vus 1 --duration 300s k6-script.js
+   ```
+
+4. Check predefined dashboard `FastAPI Observability` on Grafana [http://localhost:3000/](http://localhost:3000/) login with `admin:admin`
 
    Dashboard screenshot:
 
@@ -215,6 +222,52 @@ def metrics(request: Request) -> Response:
 Metrics with exemplars
 
 ![Metrics With Exemplars](./images/metrics-with-exemplars.png)
+
+#### Auto Instrumentation
+
+In previous sections, we used OpenTelemetry Python SDK to add trace info to spans, logs, and metrics. However, we can use [OpenTelemetry Auto Instrumentation](https://opentelemetry.io/docs/instrumentation/python/automatic/) to automatically instrument FastAPI application with OpenTelemetry Python SDK.
+
+For using automatic instrumentation, we need to install at least three packages:
+
+1. [opentelemetry-distro](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/opentelemetry-distro): OpenTelemetry API and SDK
+2. [opentelemetry-exporter](https://github.com/open-telemetry/opentelemetry-python/tree/main/exporter): Exporter for traces and metrics which have to correspond to the exporter setting of the agent, we use [opentelemetry-exporter-otlp](https://github.com/open-telemetry/opentelemetry-python/tree/main/exporter/opentelemetry-exporter-otlp) here
+3. [opentelemetry-instrumentation](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation): Instrumentation for libraries and frameworks, we use [opentelemetry-instrumentation-fastapi](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation/opentelemetry-instrumentation-fastapi) here
+   1. Or you can install [opentelemetry-bootstrap](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/opentelemetry-instrumentation#opentelemetry-bootstrap) with `pip install opentelemetry-bootstrap -a install`, which will install the instrumentation packages automatically based on your installed libraries and frameworks.
+
+There are two ways to set the configuration of OpenTelemetry Instrumentation for Python:
+
+1. [Environment variables](https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/fastapi/fastapi.html#environment-variables)
+2. [CLI arguments](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/opentelemetry-instrumentation#opentelemetry-instrument)
+
+In this project, we have a FastAPI application `app-c` without using any OpenTelemetry SDK in code to show how to use automatic instrumentation. And we use environment variables to set the automatic instrumentation configuration:
+
+```yaml
+# docker-compose.yml
+app-c:
+  build: ./fastapi_app_plain/
+  environment:
+    APP_NAME: "app-c"
+    OTEL_PYTHON_LOG_CORRELATION: "true"
+    OTEL_TRACES_EXPORTER: "otlp"
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://tempo:4317"
+    OTEL_METRICS_EXPORTER: "none"
+    OTEL_SERVICE_NAME: "app-c"
+    OTEL_RESOURCE_ATTRIBUTES: "compose_service=app-c"
+  command: "opentelemetry-instrument python main.py"
+```
+
+Here is a sample command with CLI arguments:
+
+```bash
+opentelemetry-instrument \
+    --traces_exporter otlp \
+    --metrics_exporter none \
+    --service_name fastapi \
+    --exporter_otlp_endpoint http://otel-collector:4317 \
+    python main.py
+```
+
+With automatic instrumentation, we can get the same trace info as the previous section. The logs will be overridden with trace id and span id when enabling `OTEL_PYTHON_LOG_CORRELATION` environment variable, and there is more detail on the [document](https://opentelemetry.io/docs/instrumentation/python/automatic/agent-config/#logging). However, we cannot add exemplars to metrics with automatic instrumentation, so if you want to use exemplars, you have to use manual instrumentation with OpenTelemetry Python SDK.
 
 ### Prometheus - Metrics
 
@@ -386,7 +439,7 @@ editable: true
 ```yaml
 # grafana in docker-compose.yaml
 grafana:
-   image: grafana/grafana:10.0.2
+   image: grafana/grafana:10.1.0
    volumes:
       - ./etc/grafana/:/etc/grafana/provisioning/datasources # data sources
       - ./etc/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting
