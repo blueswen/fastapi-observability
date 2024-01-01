@@ -23,7 +23,7 @@ jobs:
       - name: Build and push Spring Boot image
         uses: docker/build-push-action@v2
         with:
-          context: ./
+          context: ./fastapi_app
           push: true
           tags: ghcr.io/${{ github.repository }}/app:latest
           platforms: linux/amd64,linux/arm64
