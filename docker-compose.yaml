@@ -13,13 +13,14 @@ version: "3.4"
 
 services:
   loki:
-    image: grafana/loki:2.8.3
+    image: grafana/loki:2.9.3
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
 
   app-a:
-    build: ./fastapi_app/
+    # build: ./fastapi_app/
+    image: ghcr.io/blueswen/fastapi-observability/app:latest
     ports:
       - "8000:8000"
     depends_on:
@@ -29,7 +30,8 @@ services:
     logging: *default-logging
 
   app-b:
-    build: ./fastapi_app/
+    # build: ./fastapi_app/
+    image: ghcr.io/blueswen/fastapi-observability/app:latest
     ports:
       - "8001:8000"
     depends_on:
@@ -39,24 +41,18 @@ services:
     logging: *default-logging
 
   app-c:
-    build: ./fastapi_app_plain/
+    # build: ./fastapi_app/
+    image: ghcr.io/blueswen/fastapi-observability/app:latest
     ports:
       - "8002:8000"
     depends_on:
       - loki
     environment:
       APP_NAME: "app-c"
-      OTEL_PYTHON_LOG_CORRELATION: "true"
-      OTEL_TRACES_EXPORTER: "otlp"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://tempo:4317"
-      OTEL_METRICS_EXPORTER: "none"
-      OTEL_SERVICE_NAME: "app-c"
-      OTEL_RESOURCE_ATTRIBUTES: "compose_service=app-c"
-    command: "opentelemetry-instrument python main.py"
     logging: *default-logging
 
   prometheus:
-    image: prom/prometheus:v2.45.0
+    image: prom/prometheus:v2.48.1
     ports:
       - "9090:9090"
     volumes:
@@ -69,16 +65,17 @@ services:
     logging: *default-logging
 
   tempo:
-    image: grafana/tempo:2.1.1
+    image: grafana/tempo:2.3.1
     command: [ "--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false" ]
     ports:
-      - "14250:14250"
+      - "4317:4317"
+      - "4318:4318"
     depends_on:
       - loki
     logging: *default-logging
 
   grafana:
-    image: grafana/grafana:10.1.0
+    image: grafana/grafana:10.2.3
     ports:
       - "3000:3000"
     volumes:

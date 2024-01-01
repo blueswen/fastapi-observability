@@ -59,7 +59,7 @@ async def io_task():
 @app.get("/cpu_task")
 async def cpu_task():
     for i in range(1000):
-        n = i*i*i
+        _ = i * i * i
     logging.error("cpu task")
     return "CPU bound task finish!"
 
@@ -86,22 +86,33 @@ async def error_test(response: Response):
 
 @app.get("/chain")
 async def chain(response: Response):
-
     headers = {}
     inject(headers)  # inject trace info to header
     logging.critical(headers)
 
     async with httpx.AsyncClient() as client:
-        await client.get("http://localhost:8000/", headers=headers,)
+        await client.get(
+            "http://localhost:8000/",
+            headers=headers,
+        )
     async with httpx.AsyncClient() as client:
-        await client.get(f"http://{TARGET_ONE_HOST}:8000/io_task", headers=headers,)
+        await client.get(
+            f"http://{TARGET_ONE_HOST}:8000/io_task",
+            headers=headers,
+        )
     async with httpx.AsyncClient() as client:
-        await client.get(f"http://{TARGET_TWO_HOST}:8000/cpu_task", headers=headers,)
+        await client.get(
+            f"http://{TARGET_TWO_HOST}:8000/cpu_task",
+            headers=headers,
+        )
     logging.info("Chain Finished")
     return {"path": "/chain"}
+
 
 if __name__ == "__main__":
     # update uvicorn access logger format
     log_config = uvicorn.config.LOGGING_CONFIG
-    log_config["formatters"]["access"]["fmt"] = "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s"
+    log_config["formatters"]["access"][
+        "fmt"
+    ] = "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] [trace_id=%(otelTraceID)s span_id=%(otelSpanID)s resource.service.name=%(otelServiceName)s] - %(message)s"
     uvicorn.run(app, host="0.0.0.0", port=EXPOSE_PORT, log_config=log_config)
