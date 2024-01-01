@@ -47,6 +47,12 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
    docker-compose up -d
    ```
 
+   If got the error message `Error response from daemon: error looking up logging plugin loki: plugin loki found but disabled`, please run the following command to enable the plugin:
+
+   ```bash
+   docker plugin enable loki
+   ```
+
 3. Send requests with [siege](https://linux.die.net/man/1/siege) and curl to the FastAPI app
 
    ```bash
