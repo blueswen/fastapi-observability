@@ -38,7 +38,7 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
 1. Install [Loki Docker Driver](https://grafana.com/docs/loki/latest/clients/docker-driver/)
 
    ```bash
-   docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+   docker plugin install grafana/loki-docker-driver:2.9.2 --alias loki --grant-all-permissions
    ```
 
 2. Start all services with docker-compose
@@ -252,8 +252,8 @@ Metrics with exemplars
 
 There are two methods to add trace information to spans and logs using the OpenTelemetry Python SDK:
 
-1. [Manual Instrumentation](https://opentelemetry.io/docs/instrumentation/python/manual/): This involves adding trace information to spans, logs, and metrics using the OpenTelemetry Python SDK. It requires more coding effort but allows for the addition of exemplars to metrics. We employ this approach in this project.
-2. [Automatic Instrumentation](https://opentelemetry.io/docs/instrumentation/python/automatic/): This method automatically instruments a Python application using instrumentation libraries, but only when the used [frameworks and libraries](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation#readme) are supported. It simplifies the process by eliminating the need for manual code changes. However, it does not allow for the addition of exemplars to metrics. For more insights into automatic instrumentation, refer to my other project, [OpenTelemetry APM](https://github.com/blueswen/opentelemetry-apm?tab=readme-ov-file#python---fastapi).
+1. [Code-based Instrumentation](https://opentelemetry.io/docs/languages/python/instrumentation/): This involves adding trace information to spans, logs, and metrics using the OpenTelemetry Python SDK. It requires more coding effort but allows for the addition of exemplars to metrics. We employ this approach in this project.
+2. [Zero-code Instrumentation](https://opentelemetry.io/docs/zero-code/python/): This method automatically instruments a Python application using instrumentation libraries, but only when the used [frameworks and libraries](https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation#readme) are supported. It simplifies the process by eliminating the need for manual code changes. However, it does not allow for the addition of exemplars to metrics. For more insights into zero-code instrumentation, refer to my other project, [OpenTelemetry APM](https://github.com/blueswen/opentelemetry-apm?tab=readme-ov-file#python---fastapi).
 
 ### Prometheus - Metrics
 
