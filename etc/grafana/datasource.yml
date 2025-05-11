@@ -44,17 +44,14 @@ datasources:
     jsonData:
       nodeGraph:
         enabled: true
-      search:
-        hide: false
-      lokiSearch:
-        datasourceUid: loki
-      tracesToLogs:
+      tracesToLogsV2:
+        customQuery: false
         datasourceUid: loki
         filterBySpanID: false
         filterByTraceID: true
-        mapTagNamesEnabled: false
         tags:
-          - compose_service
+          - key: service.name
+            value: compose_service
     readOnly: false
     editable: true
   - uid: loki
@@ -73,6 +70,7 @@ datasources:
       derivedFields:
         - datasourceUid: tempo
           matcherRegex: (?:trace_id)=(\w+)
+          matcherType: regex
           name: TraceID
           url: $${__value.raw}
     readOnly: false

@@ -2,6 +2,11 @@ name: Build and Push Docker Images
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'fastapi_app/**'
 
 jobs:
   build-and-push:
@@ -20,7 +25,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.REGISTRY_TOKEN }}
 
-      - name: Build and push Spring Boot image
+      - name: Build and push Container image
         uses: docker/build-push-action@v2
         with:
           context: ./fastapi_app

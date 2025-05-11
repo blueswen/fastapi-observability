@@ -35,10 +35,13 @@ Observe the FastAPI application with three pillars of observability on [Grafana]
 
 ## Quick Start
 
-1. Install [Loki Docker Driver](https://grafana.com/docs/loki/latest/clients/docker-driver/)
+1. Install [Loki Docker Driver](https://grafana.com/docs/loki/latest/send-data/docker-driver/)
 
    ```bash
-   docker plugin install grafana/loki-docker-driver:2.9.2 --alias loki --grant-all-permissions
+   # For ARM64
+   docker plugin install grafana/loki-docker-driver:3.3.2-arm64 --alias loki --grant-all-permissions
+   # For AMD64
+   docker plugin install grafana/loki-docker-driver:3.3.2-amd64 --alias loki --grant-all-permissions
    ```
 
 2. Start all services with docker-compose
@@ -99,7 +102,7 @@ Query: `histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket
 
 ### Traces to Logs
 
-Get Trace ID and tags (here is `compose.service`) defined in Tempo data source from span, then query with Loki.
+Get Trace ID and tags (here is `service.name`) defined in Tempo data source from span, then query with Loki.
 
 ![Traces to Logs](./images/traces-to-logs.png)
 
@@ -128,8 +131,7 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     # Setting OpenTelemetry
     # set the service name to show in traces
     resource = Resource.create(attributes={
-        "service.name": app_name, # for Tempo to distinguish source
-        "compose_service": app_name # as a query criteria for Trace to logs
+        "service.name": app_name # for Tempo to distinguish source
     })
 
     # set the tracer provider
@@ -145,7 +147,7 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     FastAPIInstrumentor.instrument_app(app, tracer_provider=tracer)
 ```
 
-The following image shows the span info sent to Tempo and queried on Grafana. Trace span info provided by `FastAPIInstrumentor` with trace ID (17785b4c3d530b832fb28ede767c672c), span id(d410eb45cc61f442), service name(app-a), custom attributes(service.name=app-a, compose_service=app-a) and so on.
+The following image shows the span info sent to Tempo and queried on Grafana. Trace span info provided by `FastAPIInstrumentor` with trace ID (ef106bd57e5d8223a23ee9e3c93be73b), span id(b4fff543781f9beb), service name(app-a), custom attributes(service.name=app-a) and so on.
 
 ![Span Information](./images/span-info.png)
 
@@ -232,7 +234,7 @@ REQUESTS_PROCESSING_TIME.labels(method=method, path=path, app_name=self.app_name
 )
 ```
 
-Because exemplars is a new datatype proposed in [OpenMetrics](https://github.com/OpenObservability/OpenMetrics/blob/main/specification/OpenMetrics.md#exemplars), `/metrics` have to use `CONTENT_TYPE_LATEST` and `generate_latest` from `prometheus_client.openmetrics.exposition` module instead of `prometheus_client` module. Otherwise using the wrong generate_latest the exemplars dict behind Counter and Histogram will never show up, and using the wrong CONTENT_TYPE_LATEST will cause Prometheus scraping to fail.
+Because exemplars is a new datatype proposed in [OpenMetrics](https://github.com/prometheus/OpenMetrics/blob/main/specification/OpenMetrics.md#exemplars), `/metrics` have to use `CONTENT_TYPE_LATEST` and `generate_latest` from `prometheus_client.openmetrics.exposition` module instead of `prometheus_client` module ([Prometheus Client Document](https://prometheus.github.io/client_python/instrumenting/exemplars/)). Otherwise using the wrong generate_latest the exemplars dict behind Counter and Histogram will never show up, and using the wrong CONTENT_TYPE_LATEST will cause Prometheus scraping to fail.
 
 ```py
 # fastapi_app/utils.py
@@ -319,8 +321,9 @@ Receives spans from applications.
 [Trace to logs](https://grafana.com/docs/grafana/latest/datasources/tempo/#trace-to-logs) setting:
 
 1. Data source: target log source
-2. Tags: key of tags or process level attributes from the trace, which will be log query criteria if the key exists in the trace
-3. Map tag names: Convert existing key of tags or process level attributes from trace to another key, then used as log query criteria. Use this feature when the values of the trace tag and log label are identical but the keys are different.
+2. Tags: key of tags from the trace, which will be log query criteria if the key exists in the trace
+   1. Without as value: use the key as query label
+   2. With as value: convert the tag key to another key as query label
 
 Grafana data source setting example:
 
@@ -329,6 +332,8 @@ Grafana data source setting example:
 Grafana data sources config example:
 
 ```yaml
+uid: tempo
+orgId: 1
 name: Tempo
 type: tempo
 typeName: Tempo
@@ -340,15 +345,16 @@ database: ''
 basicAuth: false
 isDefault: false
 jsonData:
-nodeGraph:
-   enabled: true
-tracesToLogs:
-   datasourceUid: loki
-   filterBySpanID: false
-   filterByTraceID: true
-   mapTagNamesEnabled: false
-   tags:
-      - compose_service
+  nodeGraph:
+    enabled: true
+  tracesToLogsV2:
+    customQuery: false
+    datasourceUid: loki
+    filterBySpanID: false
+    filterByTraceID: true
+    tags:
+      - key: service.name
+        value: compose_service
 readOnly: false
 editable: true
 ```
@@ -374,10 +380,8 @@ x-logging: &default-logging # anchor(&): 'default-logging' for defines a chunk o
           firstline: '^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}'
           max_wait_time: 3s
       - regex:
-          expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},d{3}) (?P<message>(?s:.*))$$'
+          expression: '^(?P<time>\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2},\d{3}) (?P<message>(?s:.*))$$'
 # Use $$ (double-dollar sign) when your configuration needs a literal dollar sign.
-
-version: "3.4"
 
 services:
    foo:
@@ -391,7 +395,7 @@ Add a TraceID derived field to extract the trace id and create a Tempo link from
 
 Grafana data source setting example:
 
-![Data Source of Loki: Derived fields](./images/loki-derive-filed.png)
+![Data Source of Loki: Derived fields](./images/loki-derive-fields.png)
 
 Grafana data source config example:
 
@@ -407,9 +411,10 @@ database: ''
 basicAuth: false
 isDefault: false
 jsonData:
-derivedFields:
-   - datasourceUid: tempo
+  derivedFields:
+    - datasourceUid: tempo
       matcherRegex: (?:trace_id)=(\w+)
+      matcherType: regex
       name: TraceID
       url: $${__value.raw}
       # Use $$ (double-dollar sign) when your configuration needs a literal dollar sign.
@@ -425,7 +430,7 @@ editable: true
 ```yaml
 # grafana in docker-compose.yaml
 grafana:
-   image: grafana/grafana:10.4.2
+   image: grafana/grafana:12.0.0
    volumes:
       - ./etc/grafana/:/etc/grafana/provisioning/datasources # data sources
       - ./etc/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml # dashboard setting

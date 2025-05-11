@@ -112,8 +112,7 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     # Setting OpenTelemetry
     # set the service name to show in traces
     resource = Resource.create(attributes={
-        "service.name": app_name,
-        "compose_service": app_name
+        "service.name": app_name
     })
 
     # set the tracer provider
@@ -121,7 +120,7 @@ def setting_otlp(app: ASGIApp, app_name: str, endpoint: str, log_correlation: bo
     trace.set_tracer_provider(tracer)
 
     tracer.add_span_processor(BatchSpanProcessor(
-        OTLPSpanExporter(endpoint=endpoint)))
+        OTLPSpanExporter(endpoint=endpoint, insecure=True)))
 
     if log_correlation:
         LoggingInstrumentor().instrument(set_logging_format=True)

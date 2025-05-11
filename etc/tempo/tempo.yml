@@ -1,0 +1,10 @@
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        # After tempo 2.7, receiver are default to localhost:4317 and localhost:4318 for security reasons.
+        # https://grafana.com/docs/tempo/latest/release-notes/v2-7/#opentelemetry-collector-receiver-listens-on-localhost-by-default 
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
