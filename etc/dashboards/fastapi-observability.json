@@ -30,7 +30,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -76,7 +76,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -112,7 +112,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -158,7 +158,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -202,7 +202,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -262,7 +262,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
           "expr": "fastapi_requests_duration_seconds_sum{app_name=\"$app_name\"} / fastapi_requests_duration_seconds_count{app_name=\"$app_name\"}",
@@ -277,7 +277,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -329,7 +329,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
           "exemplar": false,
@@ -348,7 +348,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -431,7 +431,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
           "expr": "sum by(path) (fastapi_responses_total{app_name=\"$app_name\", status_code=~\"2.*\", path!=\"/metrics\"}) / sum by(path) (fastapi_responses_total{app_name=\"$app_name\", path!=\"/metrics\"})",
@@ -446,7 +446,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -529,7 +529,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
           "expr": "sum by(path) (fastapi_responses_total{app_name=\"$app_name\", status_code=~\"5.*\", path!=\"/metrics\"}) / sum by(path) (fastapi_responses_total{app_name=\"$app_name\", path!=\"/metrics\"})",
@@ -544,7 +544,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -626,7 +626,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
           "expr": "histogram_quantile(.99,sum(rate(fastapi_requests_duration_seconds_bucket{app_name=\"$app_name\", path!=\"/metrics\"}[1m])) by(path, le))",
@@ -641,7 +641,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -722,7 +722,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
           "expr": "fastapi_requests_in_progress{app_name=\"$app_name\", path!=\"/metrics\"}",
@@ -737,7 +737,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "prometheus"
+        "uid": "${DS_PROMETHEUS}"
       },
       "fieldConfig": {
         "defaults": {
@@ -819,7 +819,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "${DS_PROMETHEUS}"
           },
           "exemplar": true,
           "expr": "rate(fastapi_requests_total{app_name=\"$app_name\"}[1m])",
@@ -834,7 +834,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${DS_LOKI}"
       },
       "fieldConfig": {
         "defaults": {
@@ -961,7 +961,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${DS_LOKI}"
           },
           "expr": "sum by(type) (rate({compose_service=~\"app-.*\"} | pattern `<date> <time> <type> <logger> <code> [<_>=<trace_id> <_>=<span_id> <_>=<service_name>] - <msg>` | type != \"\" |= \"$log_keyword\" [1m]))",
           "legendFormat": "{{type}}",
@@ -974,7 +974,7 @@
     {
       "datasource": {
         "type": "loki",
-        "uid": "loki"
+        "uid": "${DS_LOKI}"
       },
       "fieldConfig": {
         "defaults": {},
@@ -1003,7 +1003,7 @@
         {
           "datasource": {
             "type": "loki",
-            "uid": "loki"
+            "uid": "${DS_LOKI}"
           },
           "expr": "{compose_service=~\"app-.*\"} | pattern `<date> <time> <type> <logger> <code> [<_>=<trace_id> <_>=<span_id> <_>=<service_name>] - <msg>` | line_format \"{{.compose_service}}\\t{{.type}}\\t trace_id={{.trace_id}}\\t {{.msg}}\" |= \"$log_keyword\"",
           "hide": false,
@@ -1022,12 +1022,40 @@
     "list": [
       {
         "current": {
+          "text": "Prometheus",
+          "value": "prometheus"
+        },
+        "includeAll": false,
+        "label": "Metrics Datasource",
+        "name": "DS_PROMETHEUS",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "Loki",
+          "value": "loki"
+        },
+        "includeAll": false,
+        "label": "Logs Datasource",
+        "name": "DS_LOKI",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {
           "text": "app-a",
           "value": "app-a"
         },
         "datasource": {
           "type": "prometheus",
-          "uid": "prometheus"
+          "uid": "${DS_PROMETHEUS}"
         },
         "definition": "label_values(fastapi_app_info{}, app_name)",
         "includeAll": false,
